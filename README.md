@@ -44,7 +44,7 @@ Playground/
 1. Clone the repository:
 
 ```powershell
-git clone [<https://github.com/yaoqid/elec0138-resilient-security-webapp.git>]
+git clone https://github.com/yaoqid/elec0138-resilient-security-webapp.git
 cd Playground
 ```
 
