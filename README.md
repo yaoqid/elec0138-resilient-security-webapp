@@ -52,7 +52,8 @@ cd elec0138-resilient-security-webapp
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.venv\Scripts\Activate.ps1     # For Windows
+source .venv/bin/activate      # For macOS/Linux
 ```
 
 3. Install dependencies:
