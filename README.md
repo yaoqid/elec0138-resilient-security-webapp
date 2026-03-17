@@ -41,32 +41,39 @@ Playground/
 
 ## Setup
 
-1. Create and activate a virtual environment:
+1. Clone the repository:
+
+```powershell
+git clone [<https://github.com/yaoqid/elec0138-resilient-security-webapp.git>]
+cd Playground
+```
+
+2. Create and activate a virtual environment:
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-2. Install dependencies:
+3. Install dependencies:
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-3. Initialize the database:
+4. Initialize the database:
 
 ```powershell
 python init_db.py
 ```
 
-4. Run the application:
+5. Run the application:
 
 ```powershell
 python -m flask --app app.app run --debug
 ```
 
-5. Open your browser:
+6. Open your browser:
 
 ```text
 http://127.0.0.1:5000
