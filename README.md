@@ -45,7 +45,7 @@ Playground/
 
 ```powershell
 git clone https://github.com/yaoqid/elec0138-resilient-security-webapp.git
-cd Playground
+cd elec0138-resilient-security-webapp
 ```
 
 2. Create and activate a virtual environment:
