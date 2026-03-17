@@ -70,15 +70,30 @@ http://127.0.0.1:5000
 ## Sample Users
 
 - Normal user: `student` / `password123`
-- Admin user: `admin` / `admin123`
+- Admin user: `admin` / `admin`
 
 ## Notes For Coursework
 
 - The app is intentionally minimal and keeps everything local with SQLite.
 - The login flow is intentionally vulnerable to SQL injection for classroom demonstration and report discussion.
 - There is no rate limiting or account lockout, which makes it suitable for discussing brute-force risk in a local test environment.
+- There is no CAPTCHA, so repeated login attempts can be automated very easily.
 - Passwords are stored in plaintext and seeded with weak demo credentials so you can show why weak password choices matter.
 - These insecure choices are deliberate for a local-only coursework exercise and must never be copied into production systems.
+
+## Script Testing
+
+The login endpoint accepts regular form posts for the browser UI and also supports JSON requests for scripts.
+
+Example success or failure test:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:5000/login?format=json `
+  -ContentType "application/json" `
+  -Body '{"username":"student","password":"password123"}'
+```
+
+Failed logins return HTTP `401` with a JSON body containing `success: false`.
 
 ## Resetting The Demo Database
 

@@ -24,7 +24,7 @@ def init_db():
 
     sample_users = [
         ("student", "password123", 0),
-        ("admin", "admin123", 1),
+        ("admin", "admin", 1),
     ]
 
     for username, password, is_admin in sample_users:
