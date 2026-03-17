@@ -9,12 +9,16 @@
 <body>
     <header class="site-header">
         <div class="container nav">
-            <a class="brand" href="{{ url_for('index') }}">Cyber Coursework Demo</a>
+            <a class="brand" href="{{ url_for('index') }}">Hospital Records Demo</a>
             <nav>
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('dashboard') }}">Dashboard</a>
-                    {% if session.get('is_admin') %}
+                    {% if session.get('role') == 'admin' %}
                         <a href="{{ url_for('admin_dashboard') }}">Admin</a>
+                    {% elif session.get('role') == 'doctor' %}
+                        <a href="{{ url_for('doctor_dashboard') }}">Doctor</a>
+                    {% elif session.get('role') == 'patient' %}
+                        <a href="{{ url_for('patient_dashboard') }}">Patient</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}">Logout</a>
                 {% else %}
@@ -40,4 +44,3 @@
     </main>
 </body>
 </html>
-

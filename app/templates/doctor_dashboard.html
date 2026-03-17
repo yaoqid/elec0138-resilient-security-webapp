@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Dashboard{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Doctor Dashboard</h1>
+    <p>Welcome, <strong>{{ doctor["full_name"] }}</strong>.</p>
+    <p>Department: {{ doctor["department"] }} | Email: {{ doctor["email"] }}</p>
+</section>
+
+<section class="card">
+    <h2>Assigned Medical Records</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Record</th>
+                <th>Patient</th>
+                <th>Diagnosis</th>
+                <th>Treatment</th>
+                <th>Notes</th>
+                <th>Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+                <tr>
+                    <td>{{ record["record_id"] }}</td>
+                    <td>{{ record["patient_name"] }}</td>
+                    <td>{{ record["diagnosis"] }}</td>
+                    <td>{{ record["treatment"] }}</td>
+                    <td>{{ record["notes"] }}</td>
+                    <td>{{ record["last_updated"] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

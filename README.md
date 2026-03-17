@@ -1,13 +1,13 @@
 # Flask Coursework Demo
 
-This project is a minimal Flask web application for a local academic cybersecurity demo. It includes:
+This project is a minimal Flask web application for a local academic cybersecurity demo based on a hospital records environment. It includes:
 
 - user registration
 - user login
 - logout
 - user dashboard
 - admin dashboard
-- SQLite database with seeded sample users
+- SQLite database created from a hospital records SQL script
 
 This version is intentionally insecure for local academic demonstration only. It must never be deployed to a real environment.
 
@@ -21,14 +21,19 @@ Playground/
 |   |-- static/
 |   |   `-- style.css
 |   `-- templates/
-|       |-- admin.html
+|       |-- admin_dashboard.html
 |       |-- base.html
-|       |-- dashboard.html
+|       |-- doctor_dashboard.html
 |       |-- index.html
 |       |-- login.html
+|       |-- patient_dashboard.html
 |       `-- register.html
 |-- instance/
-|   `-- demo.db
+|   |-- hospital_demo.db
+|   `-- hospital_demo.sql
+|-- scripts/
+|   |-- test_bruteforce_login.py
+|   `-- test_sqli_login.py
 |-- init_db.py
 |-- requirements.txt
 `-- README.md
@@ -69,8 +74,9 @@ http://127.0.0.1:5000
 
 ## Sample Users
 
-- Normal user: `student` / `password123`
-- Admin user: `admin` / `admin`
+- Admin user: `admin1` / `admin123`
+- Doctor user: `acarter` / `doctor123`
+- Patient user: `obennett` / `patient123`
 
 ## Notes For Coursework
 
@@ -78,7 +84,7 @@ http://127.0.0.1:5000
 - The login flow is intentionally vulnerable to SQL injection for classroom demonstration and report discussion.
 - There is no rate limiting or account lockout, which makes it suitable for discussing brute-force risk in a local test environment.
 - There is no CAPTCHA, so repeated login attempts can be automated very easily.
-- Passwords are stored in plaintext and seeded with weak demo credentials so you can show why weak password choices matter.
+- Passwords are stored in plaintext in the `users` table and medical records are visible through role-based dashboards.
 - These insecure choices are deliberate for a local-only coursework exercise and must never be copied into production systems.
 
 ## Script Testing
@@ -90,7 +96,7 @@ Example success or failure test:
 ```powershell
 Invoke-RestMethod -Method Post -Uri http://127.0.0.1:5000/login?format=json `
   -ContentType "application/json" `
-  -Body '{"username":"student","password":"password123"}'
+  -Body '{"username":"obennett","password":"patient123"}'
 ```
 
 Failed logins return HTTP `401` with a JSON body containing `success: false`.

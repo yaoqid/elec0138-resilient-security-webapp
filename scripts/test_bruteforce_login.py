@@ -16,7 +16,7 @@ import requests
 
 
 LOGIN_URL = "http://127.0.0.1:5000/login?format=json"
-TARGET_USERNAME = "admin"
+TARGET_USERNAME = "admin1"
 
 # Short, readable list for the coursework demo.
 PASSWORD_CANDIDATES = [
@@ -75,4 +75,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

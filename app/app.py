@@ -3,11 +3,13 @@ import sqlite3
 from pathlib import Path
 
 from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATABASE = BASE_DIR / "instance" / "demo.db"
+DATABASE = BASE_DIR / "instance" / "hospital_demo.db"
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "coursework-demo-secret-key"
+app.config["SECRET_KEY"] = "hospital-coursework-demo-secret-key"
 app.config["DATABASE"] = DATABASE
 
 
@@ -15,9 +17,8 @@ def wants_json_response():
     return request.is_json or request.args.get("format") == "json"
 
 
-def log_login_attempt(username, success, is_admin=False):
+def log_login_attempt(username, success, role="unknown"):
     outcome = "SUCCESS" if success else "FAILURE"
-    role = "admin" if is_admin else "user"
     print(f"[LOGIN {outcome}] username={username!r} role={role}")
 
 
@@ -46,15 +47,37 @@ def login_required(view):
     return wrapped_view
 
 
-def admin_required(view):
-    @wraps(view)
-    def wrapped_view(*args, **kwargs):
-        if not session.get("is_admin"):
-            flash("Admin access is required.")
-            return redirect(url_for("dashboard"))
-        return view(*args, **kwargs)
+def role_required(*allowed_roles):
+    def decorator(view):
+        @wraps(view)
+        def wrapped_view(*args, **kwargs):
+            if session.get("role") not in allowed_roles:
+                flash("You do not have permission to access that page.")
+                return redirect(url_for("dashboard"))
+            return view(*args, **kwargs)
 
-    return wrapped_view
+        return wrapped_view
+
+    return decorator
+
+
+def fetch_user_profile(role, linked_id):
+    db = get_db()
+    if role == "doctor":
+        return db.execute(
+            "SELECT doctor_id, full_name, department, email FROM doctors WHERE doctor_id = ?",
+            (linked_id,),
+        ).fetchone()
+    if role == "patient":
+        return db.execute(
+            """
+            SELECT patient_id, full_name, date_of_birth, gender, phone, email
+            FROM patients
+            WHERE patient_id = ?
+            """,
+            (linked_id,),
+        ).fetchone()
+    return None
 
 
 @app.route("/")
@@ -69,23 +92,40 @@ def register():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
+        full_name = request.form.get("full_name", "").strip()
+        date_of_birth = request.form.get("date_of_birth", "").strip()
+        gender = request.form.get("gender", "").strip()
+        phone = request.form.get("phone", "").strip()
+        email = request.form.get("email", "").strip()
 
-        if not username or not password:
-            flash("Username and password are required.")
+        if not all([username, password, full_name, date_of_birth, gender, email]):
+            flash("All required fields must be completed.")
             return render_template("register.html")
 
         db = get_db()
         try:
+            cursor = db.execute(
+                """
+                INSERT INTO patients (full_name, date_of_birth, gender, phone, email)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (full_name, date_of_birth, gender, phone, email),
+            )
+            patient_id = cursor.lastrowid
             db.execute(
-                "INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)",
-                (username, password, 0),
+                """
+                INSERT INTO users (username, password, role, linked_id)
+                VALUES (?, ?, 'patient', ?)
+                """,
+                (username, password, patient_id),
             )
             db.commit()
         except sqlite3.IntegrityError:
-            flash("That username already exists.")
+            db.rollback()
+            flash("That username or email already exists.")
             return render_template("register.html")
 
-        flash("Registration successful. Please log in.")
+        flash("Patient registration successful. Please log in.")
         return redirect(url_for("login"))
 
     return render_template("register.html")
@@ -113,10 +153,8 @@ def login():
         # - no account lockout
         # - no CAPTCHA
         # - immediate success/failure feedback
-        # Those choices make automated repeated password guessing trivial and must never
-        # be copied into a real authentication system.
         query = (
-            "SELECT id, username, is_admin FROM users "
+            "SELECT user_id, username, role, linked_id FROM users "
             f"WHERE username = '{username}' AND password = '{password}'"
         )
         user = db.execute(query).fetchone()
@@ -129,19 +167,22 @@ def login():
             return render_template("login.html"), 401
 
         session.clear()
-        session["user_id"] = user["id"]
+        session["user_id"] = user["user_id"]
         session["username"] = user["username"]
-        session["is_admin"] = bool(user["is_admin"])
-        log_login_attempt(user["username"], success=True, is_admin=bool(user["is_admin"]))
+        session["role"] = user["role"]
+        session["linked_id"] = user["linked_id"]
+        log_login_attempt(user["username"], success=True, role=user["role"])
+
         if wants_json_response():
             return jsonify(
                 {
                     "success": True,
                     "message": "Login successful.",
                     "username": user["username"],
-                    "is_admin": bool(user["is_admin"]),
+                    "role": user["role"],
                 }
             )
+
         flash("Login successful.")
         return redirect(url_for("dashboard"))
 
@@ -159,17 +200,87 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    role = session.get("role")
+    if role == "admin":
+        return redirect(url_for("admin_dashboard"))
+    if role == "doctor":
+        return redirect(url_for("doctor_dashboard"))
+    return redirect(url_for("patient_dashboard"))
 
 
 @app.route("/admin")
 @login_required
-@admin_required
+@role_required("admin")
 def admin_dashboard():
-    users = get_db().execute(
-        "SELECT id, username, is_admin FROM users ORDER BY username"
+    db = get_db()
+    users = db.execute(
+        "SELECT user_id, username, role, linked_id FROM users ORDER BY role, username"
     ).fetchall()
-    return render_template("admin.html", users=users)
+    patients = db.execute(
+        """
+        SELECT patient_id, full_name, date_of_birth, gender, phone, email
+        FROM patients
+        ORDER BY full_name
+        """
+    ).fetchall()
+    doctors = db.execute(
+        "SELECT doctor_id, full_name, department, email FROM doctors ORDER BY full_name"
+    ).fetchall()
+    records = db.execute(
+        """
+        SELECT mr.record_id, p.full_name AS patient_name, d.full_name AS doctor_name,
+               mr.diagnosis, mr.last_updated
+        FROM medical_records mr
+        JOIN patients p ON p.patient_id = mr.patient_id
+        JOIN doctors d ON d.doctor_id = mr.doctor_id
+        ORDER BY mr.last_updated DESC
+        """
+    ).fetchall()
+    return render_template(
+        "admin_dashboard.html",
+        users=users,
+        patients=patients,
+        doctors=doctors,
+        records=records,
+    )
+
+
+@app.route("/doctor")
+@login_required
+@role_required("doctor")
+def doctor_dashboard():
+    doctor = fetch_user_profile("doctor", session.get("linked_id"))
+    records = get_db().execute(
+        """
+        SELECT mr.record_id, p.full_name AS patient_name, mr.diagnosis, mr.treatment,
+               mr.notes, mr.last_updated
+        FROM medical_records mr
+        JOIN patients p ON p.patient_id = mr.patient_id
+        WHERE mr.doctor_id = ?
+        ORDER BY mr.last_updated DESC
+        """,
+        (session.get("linked_id"),),
+    ).fetchall()
+    return render_template("doctor_dashboard.html", doctor=doctor, records=records)
+
+
+@app.route("/patient")
+@login_required
+@role_required("patient")
+def patient_dashboard():
+    patient = fetch_user_profile("patient", session.get("linked_id"))
+    records = get_db().execute(
+        """
+        SELECT mr.record_id, d.full_name AS doctor_name, d.department, mr.diagnosis,
+               mr.treatment, mr.notes, mr.last_updated
+        FROM medical_records mr
+        JOIN doctors d ON d.doctor_id = mr.doctor_id
+        WHERE mr.patient_id = ?
+        ORDER BY mr.last_updated DESC
+        """,
+        (session.get("linked_id"),),
+    ).fetchall()
+    return render_template("patient_dashboard.html", patient=patient, records=records)
 
 
 if __name__ == "__main__":

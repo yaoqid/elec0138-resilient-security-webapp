@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Admin Dashboard</h1>
+    <p>Signed in as <strong>{{ session.get('username') }}</strong>. This view shows the full hospital demo dataset.</p>
+    <p>Users: {{ users|length }} | Patients: {{ patients|length }} | Doctors: {{ doctors|length }} | Records: {{ records|length }}</p>
+</section>
+
+<section class="card">
+    <h2>Users</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Linked ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user["user_id"] }}</td>
+                    <td>{{ user["username"] }}</td>
+                    <td>{{ user["role"] }}</td>
+                    <td>{{ user["linked_id"] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="card">
+    <h2>Doctors</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doctor in doctors %}
+                <tr>
+                    <td>{{ doctor["doctor_id"] }}</td>
+                    <td>{{ doctor["full_name"] }}</td>
+                    <td>{{ doctor["department"] }}</td>
+                    <td>{{ doctor["email"] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="card">
+    <h2>Patients</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Date of Birth</th>
+                <th>Gender</th>
+                <th>Phone</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+                <tr>
+                    <td>{{ patient["patient_id"] }}</td>
+                    <td>{{ patient["full_name"] }}</td>
+                    <td>{{ patient["date_of_birth"] }}</td>
+                    <td>{{ patient["gender"] }}</td>
+                    <td>{{ patient["phone"] }}</td>
+                    <td>{{ patient["email"] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="card">
+    <h2>Medical Records</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Record</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Diagnosis</th>
+                <th>Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+                <tr>
+                    <td>{{ record["record_id"] }}</td>
+                    <td>{{ record["patient_name"] }}</td>
+                    <td>{{ record["doctor_name"] }}</td>
+                    <td>{{ record["diagnosis"] }}</td>
+                    <td>{{ record["last_updated"] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

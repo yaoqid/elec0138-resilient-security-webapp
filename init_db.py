@@ -3,39 +3,19 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = BASE_DIR / "instance" / "demo.db"
+SQL_PATH = BASE_DIR / "instance" / "hospital_demo.sql"
+DATABASE = BASE_DIR / "instance" / "hospital_demo.db"
 
 
 def init_db():
     DATABASE.parent.mkdir(parents=True, exist_ok=True)
+
+    if DATABASE.exists():
+        DATABASE.unlink()
+
     connection = sqlite3.connect(DATABASE)
-
-    connection.execute("DROP TABLE IF EXISTS users")
-    connection.execute(
-        """
-        CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            is_admin INTEGER NOT NULL DEFAULT 0
-        )
-        """
-    )
-
-    sample_users = [
-        ("student", "password123", 0),
-        ("admin", "admin", 1),
-    ]
-
-    for username, password, is_admin in sample_users:
-        connection.execute(
-            """
-            INSERT INTO users (username, password, is_admin)
-            VALUES (?, ?, ?)
-            """,
-            (username, password, is_admin),
-        )
-
+    sql_script = SQL_PATH.read_text(encoding="utf-8")
+    connection.executescript(sql_script)
     connection.commit()
     connection.close()
     print(f"Database initialized at {DATABASE}")
