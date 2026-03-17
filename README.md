@@ -14,7 +14,7 @@ This version is intentionally insecure for local academic demonstration only. It
 ## Project Structure
 
 ```text
-Playground/
+elec0138-resilient-security-webapp/
 |-- app/
 |   |-- __init__.py
 |   |-- app.py
@@ -29,6 +29,7 @@ Playground/
 |       |-- patient_dashboard.html
 |       `-- register.html
 |-- instance/
+    |-- demo.db
 |   |-- hospital_demo.db
 |   `-- hospital_demo.sql
 |-- scripts/
