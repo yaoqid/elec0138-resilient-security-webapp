@@ -3,9 +3,6 @@ import sqlite3
 from pathlib import Path
 
 from flask import Flask, flash, g, redirect, render_template, request, session, url_for
-from werkzeug.security import check_password_hash, generate_password_hash
-
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATABASE = BASE_DIR / "instance" / "demo.db"
 
@@ -70,8 +67,8 @@ def register():
         db = get_db()
         try:
             db.execute(
-                "INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, ?)",
-                (username, generate_password_hash(password), 0),
+                "INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)",
+                (username, password, 0),
             )
             db.commit()
         except sqlite3.IntegrityError:
@@ -91,12 +88,17 @@ def login():
         password = request.form.get("password", "")
 
         db = get_db()
-        user = db.execute(
-            "SELECT id, username, password_hash, is_admin FROM users WHERE username = ?",
-            (username,),
-        ).fetchone()
+        # Intentionally vulnerable login query for local coursework demonstration only.
+        # This is insecure because untrusted user input is concatenated directly into SQL,
+        # which allows attackers to change the logic of the query with SQL injection.
+        # Never use this pattern in production code.
+        query = (
+            "SELECT id, username, is_admin FROM users "
+            f"WHERE username = '{username}' AND password = '{password}'"
+        )
+        user = db.execute(query).fetchone()
 
-        if user is None or not check_password_hash(user["password_hash"], password):
+        if user is None:
             flash("Invalid username or password.")
             return render_template("login.html")
 
@@ -136,4 +138,3 @@ def admin_dashboard():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
