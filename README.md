@@ -95,6 +95,22 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:5000/login?format=json `
 
 Failed logins return HTTP `401` with a JSON body containing `success: false`.
 
+## Local Demo Scripts
+
+Two local-only testing scripts are included in [scripts](/c:/Users/35562/OneDrive/文档/Playground/scripts):
+
+- [test_sqli_login.py](/c:/Users/35562/OneDrive/文档/Playground/scripts/test_sqli_login.py) demonstrates the intentional SQL injection login weakness.
+- [test_bruteforce_login.py](/c:/Users/35562/OneDrive/文档/Playground/scripts/test_bruteforce_login.py) demonstrates repeated automated login attempts against the intentionally weak login flow.
+
+Usage:
+
+```powershell
+python scripts/test_sqli_login.py
+python scripts/test_bruteforce_login.py
+```
+
+These scripts are intentionally scoped to the local coursework app on `http://127.0.0.1:5000` and are not written as general-purpose tools.
+
 ## Resetting The Demo Database
 
 If you want to recreate the seeded users, run:
