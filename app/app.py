@@ -15,6 +15,12 @@ def wants_json_response():
     return request.is_json or request.args.get("format") == "json"
 
 
+def log_login_attempt(username, success, is_admin=False):
+    outcome = "SUCCESS" if success else "FAILURE"
+    role = "admin" if is_admin else "user"
+    print(f"[LOGIN {outcome}] username={username!r} role={role}")
+
+
 def get_db():
     if "db" not in g:
         g.db = sqlite3.connect(app.config["DATABASE"])
@@ -116,6 +122,7 @@ def login():
         user = db.execute(query).fetchone()
 
         if user is None:
+            log_login_attempt(username, success=False)
             if wants_json_response():
                 return jsonify({"success": False, "message": "Invalid username or password."}), 401
             flash("Invalid username or password.")
@@ -125,6 +132,7 @@ def login():
         session["user_id"] = user["id"]
         session["username"] = user["username"]
         session["is_admin"] = bool(user["is_admin"])
+        log_login_attempt(user["username"], success=True, is_admin=bool(user["is_admin"]))
         if wants_json_response():
             return jsonify(
                 {
