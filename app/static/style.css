@@ -1,0 +1,158 @@
+:root {
+    color-scheme: light;
+    --bg: #f4f7fb;
+    --panel: #ffffff;
+    --line: #d8e0ea;
+    --text: #203040;
+    --muted: #5f7287;
+    --accent: #1b6ca8;
+    --accent-dark: #124f7c;
+    --flash: #e9f5ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: linear-gradient(180deg, #eef5fb 0%, #f9fbfd 100%);
+    color: var(--text);
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.container {
+    width: min(900px, calc(100% - 2rem));
+    margin: 0 auto;
+}
+
+.site-header {
+    background: #11283a;
+    border-bottom: 4px solid #204866;
+    padding: 1rem 0;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.nav nav {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav a {
+    color: #f6fbff;
+}
+
+.brand {
+    font-weight: 700;
+}
+
+main {
+    padding: 2rem 0 3rem;
+}
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(17, 40, 58, 0.08);
+}
+
+.hero {
+    text-align: center;
+    padding: 3rem 1.5rem;
+}
+
+.form-card {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+form {
+    display: grid;
+    gap: 0.75rem;
+}
+
+input,
+button {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    font: inherit;
+}
+
+button,
+.button {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+}
+
+button:hover,
+.button:hover {
+    background: var(--accent-dark);
+}
+
+.button.secondary {
+    background: #dceaf5;
+    color: var(--text);
+}
+
+.flash-list {
+    margin-bottom: 1rem;
+}
+
+.flash {
+    background: var(--flash);
+    border: 1px solid #c4e4ff;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+th,
+td {
+    padding: 0.85rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+}
+
+@media (max-width: 640px) {
+    .nav,
+    .actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nav nav {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}

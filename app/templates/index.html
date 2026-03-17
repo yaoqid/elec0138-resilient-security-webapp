@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<section class="card hero">
+    <h1>Minimal Service Platform Demo</h1>
+    <p>This Flask app was built for local academic coursework with user and admin views.</p>
+    <div class="actions">
+        <a class="button" href="{{ url_for('login') }}">Login</a>
+        <a class="button secondary" href="{{ url_for('register') }}">Register</a>
+    </div>
+</section>
+{% endblock %}
+
