@@ -46,6 +46,4 @@ CREATE TABLE login_logs (
     note        TEXT
 );
 
--- Admin account (only hardcoded user)
-INSERT INTO users (username, password, role, linked_id) VALUES
-('admin1', 'admin123', 'admin', NULL);
+-- Admin account inserted by init_db.py with hashed password

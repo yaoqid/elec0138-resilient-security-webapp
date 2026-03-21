@@ -1,16 +1,32 @@
+import secrets
 from functools import wraps
 import sqlite3
 from pathlib import Path
 
 from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATABASE = BASE_DIR / "instance" / "hospital_demo.db"
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "hospital-coursework-demo-secret-key"
+app.config["SECRET_KEY"] = secrets.token_hex(32)   # Secure random key on every start
 app.config["DATABASE"] = DATABASE
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
+
+# --- Rate limiter: max 5 login attempts per minute per IP ---
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=[],
+    storage_uri="memory://",
+)
+
+MAX_FAILED_ATTEMPTS = 10   # Lock account after this many consecutive failures
 
 
 def wants_json_response():
@@ -23,9 +39,8 @@ def log_login_attempt(username, success, role="unknown"):
     try:
         ip = request.remote_addr or "unknown"
         note = None
-        # Flag obvious SQL injection attempts
         if any(c in username for c in ("'", "--", ";", "/*", "OR ", "or ")):
-            note = "Possible SQL injection detected"
+            note = "Possible SQL injection attempt (blocked by parameterized query)"
         db = get_db()
         db.execute(
             """
@@ -36,7 +51,7 @@ def log_login_attempt(username, success, role="unknown"):
         )
         db.commit()
     except Exception:
-        pass  # Never let logging break the login flow
+        pass
 
 
 def get_db():
@@ -60,7 +75,6 @@ def login_required(view):
             flash("Please log in first.")
             return redirect(url_for("login"))
         return view(*args, **kwargs)
-
     return wrapped_view
 
 
@@ -72,10 +86,26 @@ def role_required(*allowed_roles):
                 flash("You do not have permission to access that page.")
                 return redirect(url_for("dashboard"))
             return view(*args, **kwargs)
-
         return wrapped_view
-
     return decorator
+
+
+def get_failed_attempts(username):
+    """Count consecutive failed login attempts for a username."""
+    db = get_db()
+    row = db.execute(
+        """
+        SELECT COUNT(*) FROM login_logs
+        WHERE username = ?
+          AND success = 0
+          AND log_id > COALESCE(
+              (SELECT MAX(log_id) FROM login_logs WHERE username = ? AND success = 1),
+              0
+          )
+        """,
+        (username, username),
+    ).fetchone()
+    return row[0] if row else 0
 
 
 def fetch_user_profile(role, linked_id):
@@ -89,8 +119,7 @@ def fetch_user_profile(role, linked_id):
         return db.execute(
             """
             SELECT patient_id, full_name, date_of_birth, gender, phone, email
-            FROM patients
-            WHERE patient_id = ?
+            FROM patients WHERE patient_id = ?
             """,
             (linked_id,),
         ).fetchone()
@@ -119,6 +148,9 @@ def register():
             flash("All required fields must be completed.")
             return render_template("register.html")
 
+        # Hash password before storage
+        hashed_password = generate_password_hash(password)
+
         db = get_db()
         try:
             cursor = db.execute(
@@ -134,7 +166,7 @@ def register():
                 INSERT INTO users (username, password, role, linked_id)
                 VALUES (?, ?, 'patient', ?)
                 """,
-                (username, password, patient_id),
+                (username, hashed_password, patient_id),
             )
             db.commit()
         except sqlite3.IntegrityError:
@@ -149,6 +181,7 @@ def register():
 
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def login():
     if request.method == "POST":
         if request.is_json:
@@ -159,24 +192,25 @@ def login():
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "")
 
-        db = get_db()
-        # Intentionally vulnerable login query for local coursework demonstration only.
-        # This is insecure because untrusted user input is concatenated directly into SQL,
-        # which allows attackers to change the logic of the query with SQL injection.
-        # Never use this pattern in production code.
-        #
-        # This route is also intentionally easy to brute-force:
-        # - no rate limiting
-        # - no account lockout
-        # - no CAPTCHA
-        # - immediate success/failure feedback
-        query = (
-            "SELECT user_id, username, role, linked_id FROM users "
-            f"WHERE username = '{username}' AND password = '{password}'"
-        )
-        user = db.execute(query).fetchone()
+        # --- Account lockout check ---
+        if get_failed_attempts(username) >= MAX_FAILED_ATTEMPTS:
+            log_login_attempt(username, success=False, role="locked")
+            msg = "Account locked due to too many failed attempts. Contact an administrator."
+            if wants_json_response():
+                return jsonify({"success": False, "message": msg}), 403
+            flash(msg)
+            return render_template("login.html"), 403
 
-        if user is None:
+        db = get_db()
+
+        # --- FIX 1: Parameterized query (prevents SQL injection) ---
+        user = db.execute(
+            "SELECT user_id, username, password, role, linked_id FROM users WHERE username = ?",
+            (username,),
+        ).fetchone()
+
+        # --- FIX 2: Password hashing check ---
+        if user is None or not check_password_hash(user["password"], password):
             log_login_attempt(username, success=False)
             if wants_json_response():
                 return jsonify({"success": False, "message": "Invalid username or password."}), 401
@@ -236,8 +270,7 @@ def admin_dashboard():
     patients = db.execute(
         """
         SELECT patient_id, full_name, date_of_birth, gender, phone, email
-        FROM patients
-        ORDER BY full_name
+        FROM patients ORDER BY full_name
         """
     ).fetchall()
     doctors = db.execute(

@@ -14,6 +14,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from faker import Faker
+from werkzeug.security import generate_password_hash
 
 BASE_DIR = Path(__file__).resolve().parent
 DATABASE = BASE_DIR / "instance" / "hospital_demo.db"
@@ -84,8 +85,8 @@ def generate(n_patients=100):
             username = f"{username}{doc_id}"
         existing_usernames.add(username)
         conn.execute(
-            "INSERT OR IGNORE INTO users (username, password, role, linked_id) VALUES (?, 'doctor123', 'doctor', ?)",
-            (username, doc_id),
+            "INSERT OR IGNORE INTO users (username, password, role, linked_id) VALUES (?, ?, 'doctor', ?)",
+            (username, generate_password_hash("doctor123"), doc_id),
         )
 
     # --- Generate patients + users + medical records ---
@@ -130,7 +131,7 @@ def generate(n_patients=100):
 
         conn.execute(
             "INSERT INTO users (username, password, role, linked_id) VALUES (?, ?, 'patient', ?)",
-            (username, "patient123", patient_id),
+            (username, generate_password_hash("patient123"), patient_id),
         )
 
         # 1-3 medical records per patient

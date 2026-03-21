@@ -1,6 +1,8 @@
 import sqlite3
 from pathlib import Path
 
+from werkzeug.security import generate_password_hash
+
 
 BASE_DIR = Path(__file__).resolve().parent
 SQL_PATH = BASE_DIR / "instance" / "hospital_demo.sql"
@@ -16,6 +18,12 @@ def init_db():
     connection = sqlite3.connect(DATABASE)
     sql_script = SQL_PATH.read_text(encoding="utf-8")
     connection.executescript(sql_script)
+
+    # Insert admin with hashed password
+    connection.execute(
+        "INSERT INTO users (username, password, role, linked_id) VALUES (?, ?, 'admin', NULL)",
+        ("admin1", generate_password_hash("admin123")),
+    )
     connection.commit()
     connection.close()
     print(f"Database initialized at {DATABASE}")
