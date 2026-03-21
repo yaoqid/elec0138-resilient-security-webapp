@@ -1,13 +1,13 @@
 # ELEC0138 Resilient Security — Hospital Web App Demo
 
-This project is a Flask-based hospital patient management system built for the ELEC0138 Security and Privacy coursework. It simulates a connected healthcare environment with intentional vulnerabilities for attack demonstration (Coursework 1) and a secure fixed version as the defensive prototype (Coursework 2).
+This project is a Flask-based hospital patient management system built for the ELEC0138 Security and Privacy coursework. It simulates a connected healthcare environment with intentional vulnerabilities for attack demonstration (Coursework 1) and a multi-layered defensive prototype (Coursework 2).
 
 ## Branches
 
 | Branch | Purpose |
 |---|---|
 | `master` | Vulnerable app — Coursework 1 attack demonstrations |
-| `secure` | Fixed app — Coursework 2 defensive prototype |
+| `secure` | Fixed app — Coursework 2 multi-layered defense system |
 
 **Switch between branches:**
 ```bash
@@ -51,6 +51,8 @@ elec0138-resilient-security-webapp/
 └── README.md
 ```
 
+---
+
 ## Setup
 
 1. Clone the repository:
@@ -80,7 +82,7 @@ pip install -r requirements.txt
 python init_db.py
 ```
 
-5. (Optional) Generate 100 synthetic patients with ICD-10 records:
+5. Generate 100 synthetic patients with ICD-10 records:
 
 ```bash
 python generate_data.py
@@ -94,19 +96,23 @@ python -m flask --app app.app run --debug
 
 7. Open your browser at `http://127.0.0.1:5000`
 
+---
+
 ## Database
 
 After running both scripts the database contains:
 
 | Table | Records |
 |---|---|
-| patients | 104 (4 seed + 100 synthetic) |
+| patients | 100 synthetic |
 | doctors | 5 |
-| medical_records | ~206 |
-| users | 107 |
+| medical_records | ~200 |
+| users | 106 (1 admin + 5 doctors + 100 patients) |
 | login_logs | grows with each login attempt |
 
 Synthetic patients use realistic UK names, dates of birth, and real **ICD-10 diagnosis codes** (e.g., `[I10] Essential hypertension`, `[F32.1] Moderate depressive episode`) generated via the Faker library.
+
+---
 
 ## Sample Users
 
@@ -120,16 +126,21 @@ Synthetic patients use realistic UK names, dates of birth, and real **ICD-10 dia
 | Doctor | `zhangm` | `doctor123` | Dr. Mei Zhang (Orthopaedics) |
 | Patient | *(generated)* | `patient123` | Run `generate_data.py` to see all 100 |
 
+---
+
 ## Intentional Vulnerabilities (Coursework 1)
+
+The `master` branch contains the following intentional security weaknesses for CW1 attack demonstration:
 
 | Vulnerability | Location | CWE |
 |---|---|---|
-| SQL Injection | `app.py` login query | CWE-89 |
-| No rate limiting / account lockout | `/login` route | CWE-307 |
-| Plaintext password storage | `users` table | CWE-256 |
-| No CAPTCHA | Login/register forms | — |
+| SQL Injection | `app.py` login query — user input concatenated directly into SQL | CWE-89 |
+| No rate limiting / account lockout | `/login` route has no throttling or lockout | CWE-307 |
+| Plaintext password storage | `users` table stores raw passwords | CWE-256 |
+| No CAPTCHA | Login/register forms have no bot protection | — |
+| Hardcoded `SECRET_KEY` | Session cookies can be forged | CWE-798 |
 
-## Attack Demonstration Scripts
+### Attack Demonstration Scripts
 
 Run the Flask app first, then in a separate terminal:
 
@@ -145,6 +156,8 @@ Both scripts target `http://127.0.0.1:5000` only and are scoped to this local de
 
 Every login attempt (success or failure) is recorded in the `login_logs` table with timestamp, IP address, and an automatic flag for SQL injection patterns.
 
+---
+
 ## Audit Log
 
 To inspect login attempts after running the attack scripts:
@@ -155,15 +168,18 @@ python query_logs.py
 
 This prints all entries in the `login_logs` table as a formatted table showing ID, timestamp, username, IP address, success/failure, role, and any flagged notes (e.g. SQL injection detected).
 
-## Coursework 2 — Security Fixes (`secure` branch)
+---
 
-| Fix | Detail |
+## Coursework 2 — Multi-Layered Defense System (`secure` branch)
+
+Switch to the `secure` branch (`git checkout secure`) for the full defensive prototype. See the `secure` branch README for detailed documentation of all four defense layers:
+
+| Layer | Features |
 |---|---|
-| Parameterized queries | SQL injection payload returns `401` — attack neutralised |
-| Password hashing | All passwords stored as scrypt hashes via Werkzeug |
-| Rate limiting | Max 5 login attempts per minute per IP (Flask-Limiter) |
-| Account lockout | Blocked after 10 consecutive failed attempts |
-| Secure session | Random `SECRET_KEY`, `HttpOnly` + `SameSite=Strict` cookies |
+| **1. Access Controls & Auth** | Parameterized queries, password hashing, rate limiting (3/min), account lockout, TOTP-based MFA, session timeout |
+| **2. Data Security & Encryption** | AES-256 field-level encryption for patient data and medical records at rest |
+| **3. Network Protection & Monitoring** | Rule-based IDS with brute-force / SQLi / locked-account detection, security alerts dashboard |
+| **4. Session Hardening** | HttpOnly + SameSite cookies, random SECRET_KEY, 15-min inactivity timeout |
 
 ---
 
