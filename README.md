@@ -93,11 +93,15 @@ Synthetic patients use realistic UK names, dates of birth, and real **ICD-10 dia
 
 ## Sample Users
 
-| Role | Username | Password |
-|---|---|---|
-| Admin | `admin1` | `admin123` |
-| Doctor | `acarter` | `doctor123` |
-| Patient | `obennett` | `patient123` |
+| Role | Username | Password | Name |
+|---|---|---|---|
+| Admin | `admin1` | `admin123` | — |
+| Doctor | `cartera` | `doctor123` | Dr. Amelia Carter (Cardiology) |
+| Doctor | `shahd` | `doctor123` | Dr. Daniel Shah (General Medicine) |
+| Doctor | `nairp` | `doctor123` | Dr. Priya Nair (Respiratory) |
+| Doctor | `obrienj` | `doctor123` | Dr. James O'Brien (Mental Health) |
+| Doctor | `zhangm` | `doctor123` | Dr. Mei Zhang (Orthopaedics) |
+| Patient | *(generated)* | `patient123` | Run `generate_data.py` to see all 100 |
 
 ## Intentional Vulnerabilities (Coursework 1)
 
