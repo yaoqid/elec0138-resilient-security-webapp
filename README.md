@@ -28,6 +28,7 @@ elec0138-resilient-security-webapp/
 │   ├── test_sqli_login.py      # SQL injection attack demo
 │   └── test_bruteforce_login.py# Brute force attack demo
 ├── generate_data.py            # Synthetic patient data generator (Faker + ICD-10)
+├── query_logs.py               # Print login audit log in a readable table
 ├── init_db.py                  # Database initialisation script
 ├── requirements.txt
 └── README.md
@@ -128,14 +129,10 @@ Every login attempt (success or failure) is recorded in the `login_logs` table w
 To inspect login attempts after running the attack scripts:
 
 ```bash
-python -c "
-import sqlite3
-conn = sqlite3.connect('instance/hospital_demo.db')
-for row in conn.execute('SELECT timestamp, username, ip_address, success, note FROM login_logs ORDER BY log_id DESC LIMIT 20'):
-    print(row)
-conn.close()
-"
+python query_logs.py
 ```
+
+This prints all entries in the `login_logs` table as a formatted table showing ID, timestamp, username, IP address, success/failure, role, and any flagged notes (e.g. SQL injection detected).
 
 ## Resetting the Database
 
