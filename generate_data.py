@@ -68,23 +68,30 @@ def generate(n_patients=100):
     conn = sqlite3.connect(DATABASE)
     conn.execute("PRAGMA foreign_keys = ON")
 
-    # --- Expand doctors ---
+    # --- Insert doctors + create a user account for each ---
+    existing_usernames = set(
+        row[0] for row in conn.execute("SELECT username FROM users")
+    )
     for doc_id, name, dept, email in DOCTOR_SEED:
-        try:
-            conn.execute(
-                "INSERT OR IGNORE INTO doctors (doctor_id, full_name, department, email) VALUES (?, ?, ?, ?)",
-                (doc_id, name, dept, email),
-            )
-        except sqlite3.IntegrityError:
-            pass
+        conn.execute(
+            "INSERT OR IGNORE INTO doctors (doctor_id, full_name, department, email) VALUES (?, ?, ?, ?)",
+            (doc_id, name, dept, email),
+        )
+        # Generate username from surname + first initial e.g. "cartera"
+        parts = name.replace("Dr. ", "").replace("Dr ", "").split()
+        username = (parts[-1] + parts[0][0]).lower().replace("'", "")
+        if username in existing_usernames:
+            username = f"{username}{doc_id}"
+        existing_usernames.add(username)
+        conn.execute(
+            "INSERT OR IGNORE INTO users (username, password, role, linked_id) VALUES (?, 'doctor123', 'doctor', ?)",
+            (username, doc_id),
+        )
 
     # --- Generate patients + users + medical records ---
     patient_ids = []
     existing_emails = set(
         row[0] for row in conn.execute("SELECT email FROM patients WHERE email IS NOT NULL")
-    )
-    existing_usernames = set(
-        row[0] for row in conn.execute("SELECT username FROM users")
     )
 
     for i in range(n_patients):
