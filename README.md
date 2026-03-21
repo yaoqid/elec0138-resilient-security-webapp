@@ -1,8 +1,23 @@
 # ELEC0138 Resilient Security — Hospital Web App Demo
 
-This project is a Flask-based hospital patient management system built for the ELEC0138 Security and Privacy coursework. It simulates a connected healthcare environment with intentional vulnerabilities for attack demonstration (Coursework 1) and a foundation for implementing defensive countermeasures (Coursework 2).
+This project is a Flask-based hospital patient management system built for the ELEC0138 Security and Privacy coursework. It simulates a connected healthcare environment with intentional vulnerabilities for attack demonstration (Coursework 1) and a secure fixed version as the defensive prototype (Coursework 2).
 
-> **Warning:** This application is intentionally insecure for local academic demonstration only. It must never be deployed to a real environment.
+## Branches
+
+| Branch | Purpose |
+|---|---|
+| `master` | Vulnerable app — Coursework 1 attack demonstrations |
+| `secure` | Fixed app — Coursework 2 defensive prototype |
+
+**Switch between branches:**
+```bash
+git checkout master   # vulnerable version (CW1)
+git checkout secure   # fixed version (CW2)
+```
+
+> After switching branches, always re-run `python init_db.py` and `python generate_data.py`.
+
+---
 
 ## Project Structure
 
@@ -10,7 +25,7 @@ This project is a Flask-based hospital patient management system built for the E
 elec0138-resilient-security-webapp/
 ├── app/
 │   ├── __init__.py
-│   ├── app.py                  # Main Flask application (intentionally vulnerable)
+│   ├── app.py                  # Main Flask application
 │   ├── static/
 │   │   └── style.css
 │   └── templates/
@@ -23,7 +38,7 @@ elec0138-resilient-security-webapp/
 │       └── patient_dashboard.html
 ├── instance/
 │   ├── hospital_demo.db        # SQLite database (generated)
-│   └── hospital_demo.sql       # Schema + seed data (incl. login_logs table)
+│   └── hospital_demo.sql       # Schema definition
 ├── scripts/
 │   ├── test_sqli_login.py      # SQL injection attack demo
 │   └── test_bruteforce_login.py# Brute force attack demo
@@ -33,6 +48,8 @@ elec0138-resilient-security-webapp/
 ├── requirements.txt
 └── README.md
 ```
+
+---
 
 ## Setup
 
@@ -63,7 +80,7 @@ pip install -r requirements.txt
 python init_db.py
 ```
 
-5. (Optional) Generate 100 synthetic patients with ICD-10 records:
+5. Generate 100 synthetic patients with ICD-10 records:
 
 ```bash
 python generate_data.py
@@ -77,19 +94,23 @@ python -m flask --app app.app run --debug
 
 7. Open your browser at `http://127.0.0.1:5000`
 
+---
+
 ## Database
 
 After running both scripts the database contains:
 
 | Table | Records |
 |---|---|
-| patients | 104 (4 seed + 100 synthetic) |
+| patients | 100 synthetic |
 | doctors | 5 |
-| medical_records | ~206 |
-| users | 107 |
+| medical_records | ~200 |
+| users | 106 (1 admin + 5 doctors + 100 patients) |
 | login_logs | grows with each login attempt |
 
 Synthetic patients use realistic UK names, dates of birth, and real **ICD-10 diagnosis codes** (e.g., `[I10] Essential hypertension`, `[F32.1] Moderate depressive episode`) generated via the Faker library.
+
+---
 
 ## Sample Users
 
@@ -103,7 +124,11 @@ Synthetic patients use realistic UK names, dates of birth, and real **ICD-10 dia
 | Doctor | `zhangm` | `doctor123` | Dr. Mei Zhang (Orthopaedics) |
 | Patient | *(generated)* | `patient123` | Run `generate_data.py` to see all 100 |
 
-## Intentional Vulnerabilities (Coursework 1)
+> On the `secure` branch all passwords are stored as scrypt hashes — the plaintext above is only for reference.
+
+---
+
+## Coursework 1 — Intentional Vulnerabilities (`master` branch)
 
 | Vulnerability | Location | CWE |
 |---|---|---|
@@ -112,7 +137,7 @@ Synthetic patients use realistic UK names, dates of birth, and real **ICD-10 dia
 | Plaintext password storage | `users` table | CWE-256 |
 | No CAPTCHA | Login/register forms | — |
 
-## Attack Demonstration Scripts
+### Attack Demonstration Scripts
 
 Run the Flask app first, then in a separate terminal:
 
@@ -124,23 +149,35 @@ python scripts/test_sqli_login.py
 python scripts/test_bruteforce_login.py
 ```
 
-Both scripts target `http://127.0.0.1:5000` only and are scoped to this local demo.
+---
 
-Every login attempt (success or failure) is recorded in the `login_logs` table with timestamp, IP address, and an automatic flag for SQL injection patterns.
+## Coursework 2 — Security Fixes (`secure` branch)
+
+| Fix | Detail |
+|---|---|
+| Parameterized queries | SQL injection payload returns `401` — attack neutralised |
+| Password hashing | All passwords stored as scrypt hashes via Werkzeug |
+| Rate limiting | Max 5 login attempts per minute per IP (Flask-Limiter) |
+| Account lockout | Blocked after 10 consecutive failed attempts |
+| Secure session | Random `SECRET_KEY`, `HttpOnly` + `SameSite=Strict` cookies |
+
+---
 
 ## Audit Log
 
-To inspect login attempts after running the attack scripts:
+Every login attempt is recorded in `login_logs` with timestamp, IP, success/failure, and SQL injection flags.
+
+To view the log:
 
 ```bash
 python query_logs.py
 ```
 
-This prints all entries in the `login_logs` table as a formatted table showing ID, timestamp, username, IP address, success/failure, role, and any flagged notes (e.g. SQL injection detected).
+---
 
 ## Resetting the Database
 
 ```bash
-python init_db.py          # reset schema + original 7 users
-python generate_data.py    # re-add 100 synthetic patients
+python init_db.py          # recreate schema + admin user
+python generate_data.py    # add 100 synthetic patients + doctor accounts
 ```
