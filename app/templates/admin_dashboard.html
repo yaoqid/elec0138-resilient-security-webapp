@@ -9,6 +9,39 @@
     <p>Users: {{ users|length }} | Patients: {{ patients|length }} | Doctors: {{ doctors|length }} | Records: {{ records|length }}</p>
 </section>
 
+<!-- Layer 3: Security Alerts (IDS) -->
+<section class="card">
+    <h2>Security Alerts (IDS)</h2>
+    {% if alerts %}
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Type</th>
+                <th>Severity</th>
+                <th>Source IP</th>
+                <th>Username</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+                <tr class="severity-{{ alert['severity'] }}">
+                    <td>{{ alert["timestamp"] }}</td>
+                    <td>{{ alert["alert_type"] }}</td>
+                    <td><span class="badge badge-{{ alert['severity'] }}">{{ alert["severity"] }}</span></td>
+                    <td>{{ alert["source_ip"] }}</td>
+                    <td>{{ alert["username"] }}</td>
+                    <td>{{ alert["description"] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No security alerts recorded.</p>
+    {% endif %}
+</section>
+
 <section class="card">
     <h2>Users</h2>
     <table>
@@ -18,6 +51,7 @@
                 <th>Username</th>
                 <th>Role</th>
                 <th>Linked ID</th>
+                <th>MFA</th>
             </tr>
         </thead>
         <tbody>
@@ -27,6 +61,7 @@
                     <td>{{ user["username"] }}</td>
                     <td>{{ user["role"] }}</td>
                     <td>{{ user["linked_id"] }}</td>
+                    <td>{% if user["mfa_enabled"] %}<span class="badge badge-on">ON</span>{% else %}<span class="badge badge-off">OFF</span>{% endif %}</td>
                 </tr>
             {% endfor %}
         </tbody>

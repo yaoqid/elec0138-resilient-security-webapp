@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}MFA Verification{% endblock %}
+
+{% block content %}
+<section class="card form-card">
+    <h1>Two-Factor Authentication</h1>
+    <p>Enter the 6-digit code from your authenticator app.</p>
+    <form method="post">
+        <label for="code">MFA Code</label>
+        <input id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}"
+               maxlength="6" autocomplete="one-time-code" required autofocus>
+        <button type="submit">Verify</button>
+    </form>
+</section>
+{% endblock %}

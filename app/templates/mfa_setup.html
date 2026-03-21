@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}MFA Setup{% endblock %}
+
+{% block content %}
+<section class="card form-card" style="max-width:520px">
+    <h1>Multi-Factor Authentication</h1>
+
+    {% if mfa_enabled %}
+        <p class="mfa-status mfa-on">MFA is currently <strong>enabled</strong>.</p>
+        <form method="post">
+            <input type="hidden" name="action" value="disable">
+            <button type="submit" class="btn-danger">Disable MFA</button>
+        </form>
+    {% else %}
+        <p>Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.):</p>
+
+        <div style="text-align:center; margin:1.5rem 0">
+            <img src="{{ url_for('mfa_qrcode') }}" alt="MFA QR Code" width="200" height="200">
+        </div>
+
+        <p class="muted">Or enter this secret manually: <code>{{ totp_secret }}</code></p>
+
+        <form method="post">
+            <input type="hidden" name="action" value="enable">
+            <label for="code">Enter the 6-digit code to confirm</label>
+            <input id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}"
+                   maxlength="6" autocomplete="one-time-code" required>
+            <button type="submit">Enable MFA</button>
+        </form>
+    {% endif %}
+</section>
+{% endblock %}

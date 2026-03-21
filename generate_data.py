@@ -16,6 +16,11 @@ from pathlib import Path
 from faker import Faker
 from werkzeug.security import generate_password_hash
 
+# Add the app directory to the path so we can import the encryption module
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent / "app"))
+from encryption import encrypt_field
+
 BASE_DIR = Path(__file__).resolve().parent
 DATABASE = BASE_DIR / "instance" / "hospital_demo.db"
 
@@ -113,9 +118,10 @@ def generate(n_patients=100):
             attempts += 1
         existing_emails.add(email)
 
+        # Layer 2: Encrypt sensitive fields before storage
         cursor = conn.execute(
             "INSERT INTO patients (full_name, date_of_birth, gender, phone, email) VALUES (?, ?, ?, ?, ?)",
-            (full_name, dob, gender, phone, email),
+            (full_name, dob, gender, encrypt_field(phone), encrypt_field(email)),
         )
         patient_id = cursor.lastrowid
         patient_ids.append(patient_id)
@@ -140,13 +146,18 @@ def generate(n_patients=100):
         for icd_code, diagnosis, treatment, notes in used_diagnoses:
             doctor_id = random.randint(1, len(DOCTOR_SEED))
             last_updated = f"{random_date()} {random.randint(8,17):02d}:{random.randint(0,59):02d}:00"
+            # Layer 2: Encrypt medical record sensitive fields
             conn.execute(
                 """
                 INSERT INTO medical_records
                     (patient_id, doctor_id, diagnosis, treatment, notes, last_updated)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
-                (patient_id, doctor_id, f"[{icd_code}] {diagnosis}", treatment, notes, last_updated),
+                (patient_id, doctor_id,
+                 encrypt_field(f"[{icd_code}] {diagnosis}"),
+                 encrypt_field(treatment),
+                 encrypt_field(notes),
+                 last_updated),
             )
 
     conn.commit()

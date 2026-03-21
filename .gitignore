@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 instance/demo.db
 instance/hospital_demo.db
+instance/.encryption_key

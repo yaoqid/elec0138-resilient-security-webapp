@@ -20,6 +20,7 @@
                     {% elif session.get('role') == 'patient' %}
                         <a href="{{ url_for('patient_dashboard') }}">Patient</a>
                     {% endif %}
+                    <a href="{{ url_for('mfa_setup') }}">MFA</a>
                     <a href="{{ url_for('logout') }}">Logout</a>
                 {% else %}
                     <a href="{{ url_for('login') }}">Login</a>

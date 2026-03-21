@@ -144,6 +144,49 @@ td {
     text-align: left;
 }
 
+/* Security alert severity badges */
+.badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-critical { background: #dc3545; color: #fff; }
+.badge-high     { background: #fd7e14; color: #fff; }
+.badge-medium   { background: #ffc107; color: #1a1a1a; }
+.badge-low      { background: #6c757d; color: #fff; }
+.badge-on       { background: #28a745; color: #fff; }
+.badge-off      { background: #ccc; color: #555; }
+
+.severity-critical { border-left: 4px solid #dc3545; }
+.severity-high     { border-left: 4px solid #fd7e14; }
+.severity-medium   { border-left: 4px solid #ffc107; }
+
+.mfa-status { padding: 0.75rem; border-radius: 8px; }
+.mfa-on  { background: #d4edda; border: 1px solid #c3e6cb; }
+.mfa-off { background: #f8d7da; border: 1px solid #f5c6cb; }
+
+.btn-danger {
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+.btn-danger:hover { background: #c82333; }
+
+.muted { color: var(--muted); font-size: 0.9rem; }
+
+code {
+    background: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    word-break: break-all;
+}
+
 @media (max-width: 640px) {
     .nav,
     .actions {

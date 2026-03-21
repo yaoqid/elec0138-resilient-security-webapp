@@ -33,7 +33,9 @@ CREATE TABLE users (
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('admin', 'doctor', 'patient')),
-    linked_id INTEGER
+    linked_id INTEGER,
+    totp_secret TEXT,
+    mfa_enabled INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE login_logs (
@@ -44,6 +46,17 @@ CREATE TABLE login_logs (
     success     INTEGER NOT NULL CHECK (success IN (0, 1)),
     role        TEXT,
     note        TEXT
+);
+
+CREATE TABLE security_alerts (
+    alert_id    INTEGER PRIMARY KEY,
+    timestamp   TEXT NOT NULL,
+    alert_type  TEXT NOT NULL,
+    severity    TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+    source_ip   TEXT,
+    username    TEXT,
+    description TEXT NOT NULL,
+    resolved    INTEGER NOT NULL DEFAULT 0
 );
 
 -- Admin account inserted by init_db.py with hashed password
