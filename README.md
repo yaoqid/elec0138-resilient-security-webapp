@@ -1,8 +1,25 @@
 # ELEC0138 Resilient Security — Hospital Web App Demo
 
-This project is a Flask-based hospital patient management system built for the ELEC0138 Security and Privacy coursework. It simulates a connected healthcare environment with intentional vulnerabilities for attack demonstration (Coursework 1) and a foundation for implementing defensive countermeasures (Coursework 2).
+This project is a Flask-based hospital patient management system built for the ELEC0138 Security and Privacy coursework. It simulates a connected healthcare environment with intentional vulnerabilities for attack demonstration (Coursework 1) and a secure fixed version as the defensive prototype (Coursework 2).
 
-> **Warning:** This application is intentionally insecure for local academic demonstration only. It must never be deployed to a real environment.
+## Branches
+
+| Branch | Purpose |
+|---|---|
+| `master` | Vulnerable app — Coursework 1 attack demonstrations |
+| `secure` | Fixed app — Coursework 2 defensive prototype |
+
+**Switch between branches:**
+```bash
+git checkout master   # vulnerable version (CW1)
+git checkout secure   # fixed version (CW2)
+```
+
+> After switching branches, always re-run `python init_db.py` and `python generate_data.py`.
+
+---
+
+> **Warning:** The `master` branch is intentionally insecure for local academic demonstration only. It must never be deployed to a real environment.
 
 ## Project Structure
 
@@ -10,7 +27,7 @@ This project is a Flask-based hospital patient management system built for the E
 elec0138-resilient-security-webapp/
 ├── app/
 │   ├── __init__.py
-│   ├── app.py                  # Main Flask application (intentionally vulnerable)
+│   ├── app.py                  # Main Flask application (intentionally vulnerable on master)
 │   ├── static/
 │   │   └── style.css
 │   └── templates/
@@ -138,9 +155,21 @@ python query_logs.py
 
 This prints all entries in the `login_logs` table as a formatted table showing ID, timestamp, username, IP address, success/failure, role, and any flagged notes (e.g. SQL injection detected).
 
+## Coursework 2 — Security Fixes (`secure` branch)
+
+| Fix | Detail |
+|---|---|
+| Parameterized queries | SQL injection payload returns `401` — attack neutralised |
+| Password hashing | All passwords stored as scrypt hashes via Werkzeug |
+| Rate limiting | Max 5 login attempts per minute per IP (Flask-Limiter) |
+| Account lockout | Blocked after 10 consecutive failed attempts |
+| Secure session | Random `SECRET_KEY`, `HttpOnly` + `SameSite=Strict` cookies |
+
+---
+
 ## Resetting the Database
 
 ```bash
-python init_db.py          # reset schema + original 7 users
-python generate_data.py    # re-add 100 synthetic patients
+python init_db.py          # recreate schema + admin user
+python generate_data.py    # add 100 synthetic patients + doctor accounts
 ```
