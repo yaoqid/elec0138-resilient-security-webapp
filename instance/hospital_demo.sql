@@ -36,6 +36,16 @@ CREATE TABLE users (
     linked_id INTEGER
 );
 
+CREATE TABLE login_logs (
+    log_id      INTEGER PRIMARY KEY,
+    timestamp   TEXT NOT NULL,
+    username    TEXT NOT NULL,
+    ip_address  TEXT,
+    success     INTEGER NOT NULL CHECK (success IN (0, 1)),
+    role        TEXT,
+    note        TEXT
+);
+
 INSERT INTO doctors (doctor_id, full_name, department, email) VALUES
 (1, 'Dr. Amelia Carter', 'Cardiology', 'amelia.carter@demo-hospital.org'),
 (2, 'Dr. Daniel Shah', 'General Medicine', 'daniel.shah@demo-hospital.org');

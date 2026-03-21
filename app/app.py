@@ -20,6 +20,23 @@ def wants_json_response():
 def log_login_attempt(username, success, role="unknown"):
     outcome = "SUCCESS" if success else "FAILURE"
     print(f"[LOGIN {outcome}] username={username!r} role={role}")
+    try:
+        ip = request.remote_addr or "unknown"
+        note = None
+        # Flag obvious SQL injection attempts
+        if any(c in username for c in ("'", "--", ";", "/*", "OR ", "or ")):
+            note = "Possible SQL injection detected"
+        db = get_db()
+        db.execute(
+            """
+            INSERT INTO login_logs (timestamp, username, ip_address, success, role, note)
+            VALUES (datetime('now'), ?, ?, ?, ?, ?)
+            """,
+            (username, ip, 1 if success else 0, role, note),
+        )
+        db.commit()
+    except Exception:
+        pass  # Never let logging break the login flow
 
 
 def get_db():
