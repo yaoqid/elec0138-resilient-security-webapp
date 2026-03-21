@@ -1,135 +1,145 @@
-# Flask Coursework Demo
+# ELEC0138 Resilient Security — Hospital Web App Demo
 
-This project is a minimal Flask web application for a local academic cybersecurity demo based on a hospital records environment. It includes:
+This project is a Flask-based hospital patient management system built for the ELEC0138 Security and Privacy coursework. It simulates a connected healthcare environment with intentional vulnerabilities for attack demonstration (Coursework 1) and a foundation for implementing defensive countermeasures (Coursework 2).
 
-- user registration
-- user login
-- logout
-- user dashboard
-- admin dashboard
-- SQLite database created from a hospital records SQL script
-
-This version is intentionally insecure for local academic demonstration only. It must never be deployed to a real environment.
+> **Warning:** This application is intentionally insecure for local academic demonstration only. It must never be deployed to a real environment.
 
 ## Project Structure
 
 ```text
 elec0138-resilient-security-webapp/
-|-- app/
-|   |-- __init__.py
-|   |-- app.py
-|   |-- static/
-|   |   `-- style.css
-|   `-- templates/
-|       |-- admin_dashboard.html
-|       |-- base.html
-|       |-- doctor_dashboard.html
-|       |-- index.html
-|       |-- login.html
-|       |-- patient_dashboard.html
-|       `-- register.html
-|-- instance/
-    |-- demo.db
-|   |-- hospital_demo.db
-|   `-- hospital_demo.sql
-|-- scripts/
-|   |-- test_bruteforce_login.py
-|   `-- test_sqli_login.py
-|-- init_db.py
-|-- requirements.txt
-`-- README.md
+├── app/
+│   ├── __init__.py
+│   ├── app.py                  # Main Flask application (intentionally vulnerable)
+│   ├── static/
+│   │   └── style.css
+│   └── templates/
+│       ├── base.html
+│       ├── index.html
+│       ├── login.html
+│       ├── register.html
+│       ├── admin_dashboard.html
+│       ├── doctor_dashboard.html
+│       └── patient_dashboard.html
+├── instance/
+│   ├── hospital_demo.db        # SQLite database (generated)
+│   └── hospital_demo.sql       # Schema + seed data (incl. login_logs table)
+├── scripts/
+│   ├── test_sqli_login.py      # SQL injection attack demo
+│   └── test_bruteforce_login.py# Brute force attack demo
+├── generate_data.py            # Synthetic patient data generator (Faker + ICD-10)
+├── init_db.py                  # Database initialisation script
+├── requirements.txt
+└── README.md
 ```
 
 ## Setup
 
 1. Clone the repository:
 
-```powershell
+```bash
 git clone https://github.com/yaoqid/elec0138-resilient-security-webapp.git
 cd elec0138-resilient-security-webapp
 ```
 
 2. Create and activate a virtual environment:
 
-```powershell
+```bash
 python -m venv .venv
-.venv\Scripts\Activate.ps1     # For Windows
-source .venv/bin/activate      # For macOS/Linux
+.venv\Scripts\Activate.ps1     # Windows
+source .venv/bin/activate      # macOS/Linux
 ```
 
 3. Install dependencies:
 
-```powershell
+```bash
 pip install -r requirements.txt
 ```
 
-4. Initialize the database:
+4. Initialise the database:
 
-```powershell
+```bash
 python init_db.py
 ```
 
-5. Run the application:
+5. (Optional) Generate 100 synthetic patients with ICD-10 records:
 
-```powershell
+```bash
+python generate_data.py
+```
+
+6. Run the application:
+
+```bash
 python -m flask --app app.app run --debug
 ```
 
-6. Open your browser:
+7. Open your browser at `http://127.0.0.1:5000`
 
-```text
-http://127.0.0.1:5000
-```
+## Database
+
+After running both scripts the database contains:
+
+| Table | Records |
+|---|---|
+| patients | 104 (4 seed + 100 synthetic) |
+| doctors | 5 |
+| medical_records | ~206 |
+| users | 107 |
+| login_logs | grows with each login attempt |
+
+Synthetic patients use realistic UK names, dates of birth, and real **ICD-10 diagnosis codes** (e.g., `[I10] Essential hypertension`, `[F32.1] Moderate depressive episode`) generated via the Faker library.
 
 ## Sample Users
 
-- Admin user: `admin1` / `admin123`
-- Doctor user: `acarter` / `doctor123`
-- Patient user: `obennett` / `patient123`
+| Role | Username | Password |
+|---|---|---|
+| Admin | `admin1` | `admin123` |
+| Doctor | `acarter` | `doctor123` |
+| Patient | `obennett` | `patient123` |
 
-## Notes For Coursework
+## Intentional Vulnerabilities (Coursework 1)
 
-- The app is intentionally minimal and keeps everything local with SQLite.
-- The login flow is intentionally vulnerable to SQL injection for classroom demonstration and report discussion.
-- There is no rate limiting or account lockout, which makes it suitable for discussing brute-force risk in a local test environment.
-- There is no CAPTCHA, so repeated login attempts can be automated very easily.
-- Passwords are stored in plaintext in the `users` table and medical records are visible through role-based dashboards.
-- These insecure choices are deliberate for a local-only coursework exercise and must never be copied into production systems.
+| Vulnerability | Location | CWE |
+|---|---|---|
+| SQL Injection | `app.py` login query | CWE-89 |
+| No rate limiting / account lockout | `/login` route | CWE-307 |
+| Plaintext password storage | `users` table | CWE-256 |
+| No CAPTCHA | Login/register forms | — |
 
-## Script Testing
+## Attack Demonstration Scripts
 
-The login endpoint accepts regular form posts for the browser UI and also supports JSON requests for scripts.
+Run the Flask app first, then in a separate terminal:
 
-Example success or failure test:
-
-```powershell
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:5000/login?format=json `
-  -ContentType "application/json" `
-  -Body '{"username":"obennett","password":"patient123"}'
-```
-
-Failed logins return HTTP `401` with a JSON body containing `success: false`.
-
-## Local Demo Scripts
-
-Two local-only testing scripts are included in [scripts](/c:/Users/35562/OneDrive/文档/Playground/scripts):
-
-- [test_sqli_login.py](/c:/Users/35562/OneDrive/文档/Playground/scripts/test_sqli_login.py) demonstrates the intentional SQL injection login weakness.
-- [test_bruteforce_login.py](/c:/Users/35562/OneDrive/文档/Playground/scripts/test_bruteforce_login.py) demonstrates repeated automated login attempts against the intentionally weak login flow.
-
-Usage:
-
-```powershell
+```bash
+# SQL injection — bypasses login without a password
 python scripts/test_sqli_login.py
+
+# Brute force — iterates a password list with no lockout
 python scripts/test_bruteforce_login.py
 ```
 
-These scripts are intentionally scoped to the local coursework app on `http://127.0.0.1:5000` and are not written as general-purpose tools.
+Both scripts target `http://127.0.0.1:5000` only and are scoped to this local demo.
 
-## Resetting The Demo Database
+Every login attempt (success or failure) is recorded in the `login_logs` table with timestamp, IP address, and an automatic flag for SQL injection patterns.
 
-If you want to recreate the seeded users, run:
+## Audit Log
 
-```powershell
-python init_db.py
+To inspect login attempts after running the attack scripts:
+
+```bash
+python -c "
+import sqlite3
+conn = sqlite3.connect('instance/hospital_demo.db')
+for row in conn.execute('SELECT timestamp, username, ip_address, success, note FROM login_logs ORDER BY log_id DESC LIMIT 20'):
+    print(row)
+conn.close()
+"
+```
+
+## Resetting the Database
+
+```bash
+python init_db.py          # reset schema + original 7 users
+python generate_data.py    # re-add 100 synthetic patients
 ```
