@@ -86,7 +86,7 @@ def generate(n_patients=100):
         existing_usernames.add(username)
         conn.execute(
             "INSERT OR IGNORE INTO users (username, password, role, linked_id) VALUES (?, ?, 'doctor', ?)",
-            (username, generate_password_hash("doctor123"), doc_id),
+            (username, generate_password_hash("Doc$Secure2026!"), doc_id),
         )
 
     # --- Generate patients + users + medical records ---
@@ -131,7 +131,7 @@ def generate(n_patients=100):
 
         conn.execute(
             "INSERT INTO users (username, password, role, linked_id) VALUES (?, ?, 'patient', ?)",
-            (username, generate_password_hash("patient123"), patient_id),
+            (username, generate_password_hash("Pat#Health2026!"), patient_id),
         )
 
         # 1-3 medical records per patient

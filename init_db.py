@@ -22,7 +22,7 @@ def init_db():
     # Insert admin with hashed password
     connection.execute(
         "INSERT INTO users (username, password, role, linked_id) VALUES (?, ?, 'admin', NULL)",
-        ("admin1", generate_password_hash("admin123")),
+        ("admin1", generate_password_hash("Sec#Admin2026!")),
     )
     connection.commit()
     connection.close()

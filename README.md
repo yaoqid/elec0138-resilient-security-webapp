@@ -114,17 +114,17 @@ Synthetic patients use realistic UK names, dates of birth, and real **ICD-10 dia
 
 ## Sample Users
 
-| Role | Username | Password | Name |
-|---|---|---|---|
-| Admin | `admin1` | `admin123` | — |
-| Doctor | `cartera` | `doctor123` | Dr. Amelia Carter (Cardiology) |
-| Doctor | `shahd` | `doctor123` | Dr. Daniel Shah (General Medicine) |
-| Doctor | `nairp` | `doctor123` | Dr. Priya Nair (Respiratory) |
-| Doctor | `obrienj` | `doctor123` | Dr. James O'Brien (Mental Health) |
-| Doctor | `zhangm` | `doctor123` | Dr. Mei Zhang (Orthopaedics) |
-| Patient | *(generated)* | `patient123` | Run `generate_data.py` to see all 100 |
+| Role | Username | Password (`master`) | Password (`secure`) | Name |
+|---|---|---|---|---|
+| Admin | `admin1` | `admin123` | `Sec#Admin2026!` | — |
+| Doctor | `cartera` | `doctor123` | `Doc$Secure2026!` | Dr. Amelia Carter (Cardiology) |
+| Doctor | `shahd` | `doctor123` | `Doc$Secure2026!` | Dr. Daniel Shah (General Medicine) |
+| Doctor | `nairp` | `doctor123` | `Doc$Secure2026!` | Dr. Priya Nair (Respiratory) |
+| Doctor | `obrienj` | `doctor123` | `Doc$Secure2026!` | Dr. James O'Brien (Mental Health) |
+| Doctor | `zhangm` | `doctor123` | `Doc$Secure2026!` | Dr. Mei Zhang (Orthopaedics) |
+| Patient | *(generated)* | `patient123` | `Pat#Health2026!` | Run `generate_data.py` to see all 100 |
 
-> On the `secure` branch all passwords are stored as scrypt hashes — the plaintext above is only for reference.
+> On the `secure` branch all passwords are stored as scrypt hashes and are strong enough to resist brute force attacks.
 
 ---
 

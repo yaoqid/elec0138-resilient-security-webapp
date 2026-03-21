@@ -181,7 +181,7 @@ def register():
 
 
 @app.route("/login", methods=["GET", "POST"])
-@limiter.limit("5 per minute")
+@limiter.limit("3 per minute")
 def login():
     if request.method == "POST":
         if request.is_json:
