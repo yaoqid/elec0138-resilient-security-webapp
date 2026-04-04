@@ -124,7 +124,7 @@ Synthetic patients use realistic UK names, dates of birth, and real **ICD-10 dia
 | Doctor | `nairp` | `doctor123` | Dr. Priya Nair (Respiratory) |
 | Doctor | `obrienj` | `doctor123` | Dr. James O'Brien (Mental Health) |
 | Doctor | `zhangm` | `doctor123` | Dr. Mei Zhang (Orthopaedics) |
-| Patient | *(generated)* | `patient123` | Run `generate_data.py` to see all 100 |
+| Patient | `wood-youngg` | `patient123` | Run `generate_data.py` to see all 100 |
 
 ---
 
