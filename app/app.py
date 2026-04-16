@@ -324,9 +324,20 @@ def login():
         # Layer 3: IDS check before processing
         ids_check_login(username, ip)
 
-        # Account lockout check
+        # Account lockout check (brute-force mitigation)
         if get_failed_attempts(username) >= MAX_FAILED_ATTEMPTS:
             log_login_attempt(username, success=False, role="locked")
+            _raise_alert(
+                alert_type="brute_force_mitigation",
+                severity="high",
+                source_ip=ip,
+                username=username,
+                description=(
+                    f"Brute-force mitigation activated: account '{username}' locked "
+                    f"after {MAX_FAILED_ATTEMPTS} consecutive failed attempts. "
+                    f"Login blocked from IP {ip}."
+                ),
+            )
             msg = "Account locked due to too many failed attempts. Contact an administrator."
             if wants_json_response():
                 return jsonify({"success": False, "message": msg}), 403
