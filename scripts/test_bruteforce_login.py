@@ -40,9 +40,7 @@ PASSWORD_CANDIDATES = [
     "welcome",
 ]
 
-# The secure branch enforces 3 requests per minute on /login.
-# Wait 21 seconds between attempts to stay just under the limit.
-RATE_LIMIT_DELAY = 21
+ATTEMPT_DELAY = 0.3  # short pause to keep terminal output readable
 
 
 def main():
@@ -52,7 +50,6 @@ def main():
     print(f"Target:   {LOGIN_URL}")
     print(f"Username: {TARGET_USERNAME}")
     print(f"Attempts: {len(PASSWORD_CANDIDATES)}")
-    print(f"Delay:    {RATE_LIMIT_DELAY}s between attempts (rate-limit aware)")
     print("-" * 60)
 
     for attempt_number, candidate in enumerate(PASSWORD_CANDIDATES, start=1):
@@ -76,15 +73,8 @@ def main():
         # Handle rate limiting (429)
         if response.status_code == 429:
             print(" — RATE LIMITED (defence working)")
-            print(f"  Waiting {RATE_LIMIT_DELAY}s before retry...")
-            time.sleep(RATE_LIMIT_DELAY)
-            # Retry the same password after waiting
-            try:
-                response = requests.post(LOGIN_URL, json=payload, timeout=10)
-            except requests.RequestException as exc:
-                print(f"  Retry failed: {exc}")
-                sys.exit(1)
-            print(f"  Retry → HTTP {response.status_code}", end="")
+            time.sleep(ATTEMPT_DELAY)
+            continue
 
         try:
             data = response.json()
@@ -111,10 +101,8 @@ def main():
         # Failed login (401)
         print(f" — {data.get('message', 'Login failed')}")
 
-        # Delay to respect rate limit before next attempt
         if attempt_number < len(PASSWORD_CANDIDATES):
-            print(f"  Waiting {RATE_LIMIT_DELAY}s (rate-limit aware)...")
-            time.sleep(RATE_LIMIT_DELAY)
+            time.sleep(ATTEMPT_DELAY)
 
     print("\n" + "=" * 60)
     print("Result: all passwords exhausted, no match found.")
