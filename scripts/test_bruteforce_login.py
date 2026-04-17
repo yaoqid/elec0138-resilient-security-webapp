@@ -61,20 +61,22 @@ def main():
         print(f"\n[Attempt {attempt_number}/{len(PASSWORD_CANDIDATES)}] "
               f"Trying password: {candidate!r}")
 
-        try:
-            response = requests.post(LOGIN_URL, json=payload, timeout=10)
-        except requests.RequestException as exc:
-            print(f"  Request failed: {exc}")
-            print("  Make sure the Flask app is running on http://127.0.0.1:5000.")
-            sys.exit(1)
+        # Keep retrying until the request gets past the rate limiter
+        while True:
+            try:
+                response = requests.post(LOGIN_URL, json=payload, timeout=10)
+            except requests.RequestException as exc:
+                print(f"  Request failed: {exc}")
+                print("  Make sure the Flask app is running on http://127.0.0.1:5000.")
+                sys.exit(1)
+
+            if response.status_code == 429:
+                print(f"  HTTP 429 — RATE LIMITED (defence working), retrying...")
+                time.sleep(ATTEMPT_DELAY)
+                continue
+            break
 
         print(f"  HTTP {response.status_code}", end="")
-
-        # Handle rate limiting (429)
-        if response.status_code == 429:
-            print(" — RATE LIMITED (defence working)")
-            time.sleep(ATTEMPT_DELAY)
-            continue
 
         try:
             data = response.json()
