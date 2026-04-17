@@ -185,6 +185,7 @@ python scripts/test_bruteforce_login.py
 | Fix | Detail |
 |---|---|
 | Brute-force detection | Flags 5+ failed login attempts from the same IP within 10 minutes |
+| Brute-force mitigation alert | Raises a HIGH-severity IDS alert when account lockout is triggered after 10 consecutive failed attempts |
 | SQL injection detection | Detects SQLi patterns in login usernames and raises critical alerts |
 | Locked account probing | Alerts when someone attempts to log in to an already-locked account |
 | Security alerts dashboard | Admin panel displays all IDS alerts with severity badges (critical / high / medium / low) |
